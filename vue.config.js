@@ -1,6 +1,5 @@
-console.log('PAPAPAPAPPAPAPAPA', process.env.NODE_ENV)
 module.exports = {
-  outputDir: 'pages',
+  outputDir: 'docs',
   publicPath: process.env.NODE_ENV === 'production'
     ? '/large-horizontal-table/'
     : '/'
