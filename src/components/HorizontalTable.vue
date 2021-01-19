@@ -8,9 +8,16 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-for="n in 30" :key="n +'tr'">
-        <td v-for="col in columns" :key="col + n +'td'">
-          {{ randomWord() }}
+      <tr v-for="(row, n) in rows" :key="n +'tr'">
+        <td v-for="(col, i) in row" :key="i + n +'td'">
+          <a
+            href="https://www.google.com"
+            :class="{dragging}"
+            @mousedown="handleMouseDown"
+            @click="handleLinkClick"
+            target="_blank">
+            {{ col }}
+          </a>
         </td>
       </tr>
     </tbody>
@@ -22,7 +29,7 @@ export default {
   name: 'HorizontalTable',
 
   props: {
-    sticky: {
+    dragging: {
       type: Boolean,
       default: false
     }
@@ -62,14 +69,35 @@ export default {
         'optio',
         'quidem?'
       ],
-      thWidths: [],
-      tableWidth: 0
+      rows: [],
+      preventClick: false
+    }
+  },
+
+  created () {
+    for (let i = 0; i < 30; i++) {
+      const row = []
+      this.columns.forEach(() => row.push(this.columns[Math.floor(Math.random() * this.columns.length)]))
+      this.rows.push(row)
+    }
+  },
+
+  watch: {
+    dragging (dragging) {
+      if (dragging) {
+        this.preventClick = true
+      }
     }
   },
 
   methods: {
-    randomWord () {
-      return this.columns[Math.floor(Math.random() * this.columns.length)]
+    handleLinkClick (e) {
+      if (this.preventClick) {
+        e.preventDefault()
+      }
+    },
+    handleMouseDown () {
+      this.preventClick = false
     }
   }
 }
@@ -82,15 +110,33 @@ table {
 
   td,
   th {
-    height: 60px;
-    padding: 0 20px;
     border-bottom: 1px solid grey;
   }
 
   th {
+    height: 60px;
     background-color: teal;
     color: white;
     box-sizing: border-box;
+  }
+
+  a {
+    display: flex;
+    align-items: center;
+    height: 60px;
+    padding: 0 20px;
+
+    &.dragging {
+      cursor: grabbing;
+    }
+  }
+
+  tr {
+    background-color: white;
+
+    &:hover {
+      background-color: rgba(teal, .5);
+    }
   }
 }
 </style>

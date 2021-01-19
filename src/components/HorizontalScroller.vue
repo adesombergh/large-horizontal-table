@@ -8,22 +8,23 @@
       class="scroller__content"
       ref="content"
       @scroll="handleContentScroll"
-      v-dragged.prevent="onContentDrag"
+      @mousedown="handleMouseDown($event, 'handleContentDrag')"
     >
-      <slot />
+      <slot :dragging="dragging" />
     </div>
 
     <div
       class="scroller__rail"
       :style="railStyle"
+      :class="{'stick': shouldStick}"
       ref="rail"
       @click.self="railCLick"
     >
       <div
-        v-dragged.prevent="onHandleDragged"
         class="scroller__handle"
         ref=handle
         :style="handleStyle"
+        @mousedown="handleMouseDown($event, 'handleRailDrag')"
       />
     </div>
   </div>
@@ -31,6 +32,13 @@
 
 <script>
 export default {
+  props: {
+    vertical: {
+      type: Boolean,
+      default: true
+    }
+  },
+
   data () {
     return {
       // CONSTANTS
@@ -44,18 +52,26 @@ export default {
       containerBottom: 0,
       contentLeft: 0,
 
-      grabbing: false
+      dragging: false,
+
+      lastCoords: null,
+      downTime: null,
+      dragHandler: null
     }
   },
 
   created () {
     window.addEventListener('scroll', this.handleWindowScroll, false)
     window.addEventListener('resize', this.handleResize, false)
+    document.documentElement.addEventListener('mousemove', this.handleMouseMove, false)
+    document.documentElement.addEventListener('mouseup', this.handleMouseUp, true)
   },
 
   beforeDestroy () {
     window.removeEventListener('scroll', this.handleWindowScroll, false)
     window.removeEventListener('resize', this.handleResize, false)
+    document.documentElement.removeEventListener('mousemove', this.handleMouseMove, false)
+    document.documentElement.removeEventListener('mouseup', this.handleMouseUp, true)
   },
 
   mounted () {
@@ -80,7 +96,7 @@ export default {
       return this.containerWidth / this.contentWidth
     },
     shouldStick () {
-      return this.containerBottom > window.innerHeight && this.containerTop <= window.innerHeight
+      return this.containerBottom > window.innerHeight && this.containerTop <= window.innerHeight - 250
     },
     showLeftShadow () {
       return this.contentLeft >= 20
@@ -90,7 +106,7 @@ export default {
     },
     customClasses () {
       return [
-        { grabbing: this.grabbing },
+        { grabbing: this.dragging },
         { 'has-left-shadow': this.showLeftShadow },
         { 'has-right-shadow': this.showRightShadow }
       ]
@@ -98,6 +114,39 @@ export default {
   },
 
   methods: {
+    handleMouseDown (e, handler) {
+      e.preventDefault()
+      this.downTime = new Date()
+      this.dragHandler = handler
+      this.lastCoords = {
+        x: e.clientX,
+        y: e.clientY
+      }
+    },
+    handleMouseUp (e) {
+      if (!this.lastCoords) return
+      e.preventDefault()
+      e.stopPropagation()
+      e.stopImmediatePropagation()
+      this.dragging = false
+      this.lastCoords = null
+      this.dragHandler = null
+    },
+    handleMouseMove (e) {
+      if (!this.lastCoords) return
+      const DRAG_THRESHOLD = 50 // ms
+      const deltaX = e.clientX - this.lastCoords.x
+      const deltaY = e.clientY - this.lastCoords.y
+      // MAKE SURE TO MOVE CONTENT if GRABBING FOR A CERTAIN AMOUNT OF TIME (DRAG_THRESHOLD)
+      if (new Date() - this.downTime > DRAG_THRESHOLD) {
+        this.dragging = true
+        this.[this.dragHandler](deltaX, deltaY)
+      }
+      this.lastCoords = {
+        x: e.clientX,
+        y: e.clientY
+      }
+    },
     handleWindowScroll () {
       this.updateVariables()
     },
@@ -107,22 +156,12 @@ export default {
     railCLick (e) {
       this.$refs.content.scrollLeft = e.layerX / this.coefficient
     },
-    onHandleDragged ({ deltaX }) {
-      if (deltaX !== undefined) {
-        this.$refs.content.scrollLeft += deltaX / this.coefficient
-        this.grabbing = true
-      } else {
-        this.grabbing = false
-      }
+    handleContentDrag (deltaX, deltaY) {
+      this.$refs.content.scrollLeft += -deltaX
+      if (this.vertical) window.scrollBy(0, -deltaY)
     },
-    onContentDrag ({ deltaX, deltaY }) {
-      if (deltaX !== undefined && deltaY !== undefined) {
-        this.$refs.content.scrollLeft += -deltaX
-        window.scrollBy(0, -deltaY)
-        this.grabbing = true
-      } else {
-        this.grabbing = false
-      }
+    handleRailDrag (deltaX) {
+      this.$refs.content.scrollLeft += deltaX / this.coefficient
     },
 
     handleResize () {
@@ -177,11 +216,27 @@ export default {
     left: 0;
     width: 100%;
     cursor: pointer;
-    background-color: rgba(white, 1);
+    background: linear-gradient(to top, rgba(255,255,255, 1), rgba(255,255,255, 1), rgba(255,255,255, 0.5));
     z-index: 5;
 
-    &.sticky {
-      position: fixed;
+    &::before{
+      content: '';
+      position: absolute;
+      height: 4rem;
+      top: -100%;
+      z-index: 2;
+      width: 100%;
+      opacity: 0;
+      transition: opacity 200ms ease-in-out;
+      pointer-events: none;
+      left: 0;
+      background: linear-gradient(to top, rgba(0,0,0, .08), rgba(0,0,0, 0));
+    }
+
+    &.stick {
+      &::before {
+        opacity: 1;
+      }
     }
   }
 

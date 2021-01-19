@@ -26,9 +26,19 @@
         </div>
         <div>
           <label>
+            <input type="checkbox" checked> Resolve conflict between drag and click
+          </label>
+        </div>
+        <div>
+          <label>
             <input type="checkbox"> Sticky table header
           </label>
         </div>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusamus nostrum amet illum, provident itaque voluptate veritatis distinctio consectetur quaerat quas ratione ut accusantium! Ab, expedita hic nisi corrupti iste suscipit.</p>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusamus nostrum amet illum, provident itaque voluptate veritatis distinctio consectetur quaerat quas ratione ut accusantium! Ab, expedita hic nisi corrupti iste suscipit.</p>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusamus nostrum amet illum, provident itaque voluptate veritatis distinctio consectetur quaerat quas ratione ut accusantium! Ab, expedita hic nisi corrupti iste suscipit.</p>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusamus nostrum amet illum, provident itaque voluptate veritatis distinctio consectetur quaerat quas ratione ut accusantium! Ab, expedita hic nisi corrupti iste suscipit.</p>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusamus nostrum amet illum, provident itaque voluptate veritatis distinctio consectetur quaerat quas ratione ut accusantium! Ab, expedita hic nisi corrupti iste suscipit.</p>
         <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusamus nostrum amet illum, provident itaque voluptate veritatis distinctio consectetur quaerat quas ratione ut accusantium! Ab, expedita hic nisi corrupti iste suscipit.</p>
         <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusamus nostrum amet illum, provident itaque voluptate veritatis distinctio consectetur quaerat quas ratione ut accusantium! Ab, expedita hic nisi corrupti iste suscipit.</p>
         <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusamus nostrum amet illum, provident itaque voluptate veritatis distinctio consectetur quaerat quas ratione ut accusantium! Ab, expedita hic nisi corrupti iste suscipit.</p>
@@ -46,8 +56,14 @@
         <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusamus nostrum amet illum, provident itaque voluptate veritatis distinctio consectetur quaerat quas ratione ut accusantium! Ab, expedita hic nisi corrupti iste suscipit.</p>
       </div>
 
-      <HorizontalScroller>
-        <HorizontalTable />
+      <div>
+        <label>
+          <input type="checkbox" v-model="verticalScroll"> Also scroll vertical on drag
+        </label>
+      </div>
+
+      <HorizontalScroller :vertical="verticalScroll" v-slot="{ dragging }">
+        <HorizontalTable :dragging="dragging" />
       </HorizontalScroller>
 
       <div class="home__inner">
@@ -83,7 +99,11 @@ export default {
   components: {
     HorizontalScroller,
     HorizontalTable
-  }
+  },
+
+  data: () => ({
+    verticalScroll: true
+  })
 }
 </script>
 
